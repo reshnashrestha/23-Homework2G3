@@ -1,0 +1,85 @@
+input data
+n = size of data
+if n < 2 : 
+   print ‘Error! Not enough data!’
+   return
+for i = 0... N-1 : 
+   if abs( sigma_i ) < 0.00001 : 
+      return
+   S += 1.0 / sigma_i**2
+   s_x += x_i / sigma_i**2
+   s_y += y_i / sigma_i**2
+for i = 0... N-1 : 
+   t_i = 1.0 / sigma_i * (x_i-s_x/S)
+   s_tt = t_i**2
+   b += t_i * y_i / sigma_i
+if abs( S ) < 0.000001 : 
+   return
+a = (s_y - s_x * b) / S
+b = b / s_tt
+sigma_a2 = (1 + s_x**2/S*s_tt) / S
+sigma_b2 = 1.0 / s_tt
+for i = 0... N-1 : 
+   chi2 += ((y_i - a - b*x_i)/sigma_i)**2
+
+
+
+   .. code
+   import numpy as np
+
+def least_squares_fit_without_uncertainties(x, y):
+    n = len(x)
+
+    if n < 2:
+        return {"Error": "Not enough data"}
+
+    # Assuming equal uncertainty for all data points
+    sigma = np.ones(n)
+
+    S = 0
+    s_x = 0
+    s_y = 0
+    s_tt = 0
+    b = 0
+
+    for i in range(n):
+        sigma_i = sigma[i]
+        S += 1.0 / (sigma_i ** 2)
+        s_x += x[i] / (sigma_i ** 2)
+        s_y += y[i] / (sigma_i ** 2)
+
+    if abs(S) < 0.000001:
+        return {"Error": "Small denominator S"}
+
+    for i in range(n):
+        sigma_i = sigma[i]
+        t_i = 1.0 / sigma_i * (x[i] - s_x / S)
+        s_tt += t_i ** 2
+        b += t_i * y[i] / sigma_i
+
+    a = (s_y - s_x * b) / S
+    b = b / s_tt
+    sigma_a2 = (1 + s_x ** 2 / (S * s_tt)) / S
+    sigma_b2 = 1.0 / s_tt
+
+    sigma = np.sqrt(np.sum(((y - a - b * x) / sigma) ** 2) / (n - 2))
+    sigma_a = np.sqrt(sigma_a2)
+    sigma_b = np.sqrt(sigma_b2)
+
+    result = {
+        "a": a,
+        "b": b,
+        "sigma": sigma,
+        "sigma_a": sigma_a,
+        "sigma_b": sigma_b
+    }
+
+    return result
+
+# Example data
+x = np.array([0.23, 0.29, 0.35, 0.41, 0.47, 0.53, 0.59, 0.65, 0.71])  # Distances
+y = np.array([175, 230, 285, 340, 395, 450, 505, 560, 615])  # Velocities
+
+result = least_squares_fit_without_uncertainties(x, y)
+print(result)
+
